@@ -1,0 +1,64 @@
+[project]
+name = "mcp-my-mac"
+version = "0.1.0"
+description = "A MCP Server for managing Mac configuration and information"
+authors = [
+    # TODO: change to your own name and email
+    {name = "Mingyuan Zhong", email = "personalaitools2025@gmail.com"},
+]
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp[cli]>=1.4.1",
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Development Status :: 4 - Beta",
+]
+
+[project.urls]
+# TODO: change to your own website
+Homepage = "https://mingyuanzhong.github.io/mcp-my-mac"
+Repository = "https://github.com/mingyuanzhong/mcp-my-mac.git"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_server_my_mac"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "black",
+    "isort",
+    "mypy",
+    "ruff",
+    "build",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.ruff]
+select = ["E", "F", "B"]
+ignore = []
+line-length = 88
+
+[project.scripts]
+mcp_server_my_mac = "mcp_server_my_mac.__main__:main"

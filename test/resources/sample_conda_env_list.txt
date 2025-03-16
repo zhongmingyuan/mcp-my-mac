@@ -1,0 +1,5 @@
+# conda environments:
+#
+base                  *  /Users/x/miniforge3
+p310                     /Users/x/miniforge3/envs/p310
+p39                      /Users/x/miniforge3/envs/p39

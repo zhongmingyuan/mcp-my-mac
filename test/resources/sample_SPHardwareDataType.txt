@@ -1,0 +1,13 @@
+Hardware:
+
+    Hardware Overview:
+
+      Model Name: MacBook Pro
+      Model Identifier: MacBookPro18,1
+      Model Number: Z14V0016HLL/A
+      Chip: Apple M1 Pro
+      Total Number of Cores: 10 (8 performance and 2 efficiency)
+      Memory: 32 GB
+      System Firmware Version: 10151.140.19
+      OS Loader Version: 10151.140.19
+      Activation Lock Status: Enabled
