@@ -26,7 +26,10 @@ A lightweight server that exposes Mac system information via a simple API, allow
 1. Clone the repository:   ```bash
    git clone git@github.com:zhongmingyuan/mcp-my-mac.git   ```
 
-2. Add the following to your MCP server config file:   ```json
+2. Configure for your AI client:
+
+   **[Claude Desktop]** Add the following to your MCP server config file:
+   ```json
    "mcpServers": {
        "mcp-my-mac": {
            "command": "uv",
@@ -38,8 +41,14 @@ A lightweight server that exposes Mac system information via a simple API, allow
                "mcp_server_my_mac"
            ]
        }
-   }   ```
+   }
+   ```
    > Note: Replace `/YOUR_PATH_TO` with the actual path where you cloned the repository.
+
+   **[Cursor]** Add tool by selecting "command" in UI:
+   ```bash
+   uv run --directory /YOUR_PATH_TO/mcp-my-mac mcp_server_my_mac
+   ```
 
 ## Usage
 
