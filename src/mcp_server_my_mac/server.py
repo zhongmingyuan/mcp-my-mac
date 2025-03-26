@@ -4,6 +4,7 @@ from .readers.load_conda_info import (
     load_conda_env_list,
     load_conda_env_package_list,
     load_conda_info,
+    load_gpu_available_mac_torch,
 )
 from .readers.load_system_profiler import load_system_profiler
 
@@ -79,6 +80,16 @@ async def mcp_call_mac_system_profiler(datatype: str) -> str:
         - SPUSBDataType - USB devices and connections
     """
     return load_system_profiler(datatype)
+
+
+@mcp.tool(name="mcp_call_gpu_available_torch")
+async def mcp_call_gpu_available_torch(env_name: str) -> bool:
+    """
+    Check if GPU is available in torch for a specific conda environment.
+    Return True if GPU (Metal for M1, M2, M3, etc.) is available
+    and installed in PyTorch, False otherwise.
+    """
+    return load_gpu_available_mac_torch(env_name)
 
 
 def start_server():

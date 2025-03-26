@@ -2,6 +2,7 @@ import json
 import os
 import platform
 import subprocess
+import tempfile
 from pathlib import Path
 
 
@@ -221,3 +222,65 @@ def load_conda_env_package_list(env_name: str):
             return f"Error listing packages in {env_name}: {result.stderr}"
     except Exception as e:
         return f"Error: {str(e)}"
+
+
+def load_gpu_available_mac_torch(env_name: str) -> bool:
+    conda_executable = find_conda_executable()
+
+    # Create a temporary Python script
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", delete=False) as f:
+        f.write(
+            "import torch\n"
+            "print(torch.__version__)\n"
+            "print(torch.backends.mps.is_available())"
+        )
+        script_path = f.name
+
+    try:
+        # Create a clean environment without venv variables
+        clean_env = os.environ.copy()
+
+        # Remove virtual environment variables that might interfere
+        for var in list(clean_env.keys()):
+            if var.startswith("VIRTUAL_ENV") or var.startswith("PYTHONHOME"):
+                clean_env.pop(var, None)
+
+        # Update PATH to remove .venv entries
+        if "PATH" in clean_env:
+            path_parts = clean_env["PATH"].split(os.pathsep)
+            clean_path = os.pathsep.join([p for p in path_parts if ".venv" not in p])
+            clean_env["PATH"] = clean_path
+
+        # Execute with clean environment
+        command = f"{conda_executable} run -n {env_name} python {script_path}"
+        print(f"Executing: {command}")
+
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            env=clean_env,  # Use the clean environment
+        )
+
+        print(f"STDOUT: {result.stdout}")
+        print(f"STDERR: {result.stderr}")
+
+        if result.returncode == 0:
+            output = result.stdout.strip()
+            # Parse the output lines
+            lines = output.splitlines()
+            if len(lines) >= 2:
+                torch_version = lines[0]
+                mps_available = lines[1].lower() == "true"
+                logging.info(f"PyTorch version: {torch_version}, MPS available: {mps_available}")
+                return mps_available
+            else:
+                logging.error(f"Unexpected output format from PyTorch check: {output}")
+                return False
+        else:
+            logging.error(f"Failed to check PyTorch MPS availability: {result.stderr}")
+        return False
+    finally:
+        # Clean up the temporary file
+        os.remove(script_path)
