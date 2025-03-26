@@ -268,7 +268,18 @@ def load_gpu_available_mac_torch(env_name: str) -> bool:
 
         if result.returncode == 0:
             output = result.stdout.strip()
-            return "True" in output
+            # Parse the output lines
+            lines = output.splitlines()
+            if len(lines) >= 2:
+                torch_version = lines[0]
+                mps_available = lines[1].lower() == "true"
+                logging.info(f"PyTorch version: {torch_version}, MPS available: {mps_available}")
+                return mps_available
+            else:
+                logging.error(f"Unexpected output format from PyTorch check: {output}")
+                return False
+        else:
+            logging.error(f"Failed to check PyTorch MPS availability: {result.stderr}")
         return False
     finally:
         # Clean up the temporary file
