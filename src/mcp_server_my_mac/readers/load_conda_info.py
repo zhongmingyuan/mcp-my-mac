@@ -226,7 +226,9 @@ def load_conda_env_package_list(env_name: str):
 
 def load_gpu_available_mac_torch(env_name: str) -> bool:
     conda_executable = find_conda_executable()
-    print(conda_executable)
+    if not conda_executable:
+        logging.error("Conda executable not found")
+        return False
 
     # Create a temporary Python script
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", delete=False) as f:
