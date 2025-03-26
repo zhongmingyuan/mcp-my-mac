@@ -226,13 +226,6 @@ def load_conda_env_package_list(env_name: str):
 
 def load_gpu_available_mac_torch(env_name: str) -> bool:
     conda_executable = find_conda_executable()
-import json
-import os
-import platform
-import subprocess
-import tempfile
-import logging
-from pathlib import Path
 
     # Create a temporary Python script
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", delete=False) as f:
