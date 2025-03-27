@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import platform
 import subprocess
@@ -273,7 +274,9 @@ def load_gpu_available_mac_torch(env_name: str) -> bool:
             if len(lines) >= 2:
                 torch_version = lines[0]
                 mps_available = lines[1].lower() == "true"
-                logging.info(f"PyTorch version: {torch_version}, MPS available: {mps_available}")
+                logging.info(
+                    f"PyTorch version: {torch_version}, MPS available: {mps_available}"
+                )
                 return mps_available
             else:
                 logging.error(f"Unexpected output format from PyTorch check: {output}")
