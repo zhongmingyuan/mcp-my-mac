@@ -40,7 +40,7 @@ async def mcp_call_conda_info(env_name=None) -> str:
     # check None and if it is a string
     if env_name and isinstance(env_name, str):
         conda_env_package_list = load_conda_env_package_list(env_name)
-        return conda_info + "\n\n" + conda_env_list + "\n\n" + f"Packages in {env_name}: \n\n{conda_env_package_list}"
+        return f"{conda_info}\n\n{conda_env_list}\n\nPackages in {env_name}:\n\n{conda_env_package_list}"
 
     return conda_info + "\n\n" + conda_env_list
 
