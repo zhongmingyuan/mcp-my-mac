@@ -4,6 +4,7 @@ from .readers.load_conda_info import (
     load_conda_env_list,
     load_conda_env_package_list,
     load_conda_info,
+    load_gpu_available_mac_tensorflow_benchmarks,
     load_gpu_available_mac_torch,
 )
 from .readers.load_system_profiler import load_system_profiler
@@ -76,10 +77,12 @@ async def mcp_call_mac_system_profiler(datatype: str) -> str:
     return load_system_profiler(datatype)
 
 
-@mcp.tool(name="mcp_call_gpu_available_torch")
-async def mcp_call_gpu_available_torch(env_name: str) -> dict:
+@mcp.tool(name="mcp_call_gpu_available")
+async def mcp_call_gpu_available(env_name: str, framework: str = "torch") -> dict:
     """
     Check if GPU is available in torch for a specific conda environment.
+    Input: torch or tensorflow
+    if framework is not provided, it will default to torch.
 
     Returns a detailed dictionary with the following information:
     - "torch_version": PyTorch version string
@@ -99,7 +102,11 @@ async def mcp_call_gpu_available_torch(env_name: str) -> dict:
     This helps determine if GPU acceleration via Apple's Metal is properly configured
     and functioning, with performance benchmarks for comparison.
     """
-    return load_gpu_available_mac_torch(env_name)
+    if framework == "torch":
+        return load_gpu_available_mac_torch(env_name)
+    elif framework == "tensorflow":
+        return load_gpu_available_mac_tensorflow_benchmarks(env_name)
+    return {"error": "Framework not supported"}
 
 
 def start_server():

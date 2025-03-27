@@ -312,5 +312,119 @@ def load_gpu_available_mac_torch(env_name: str) -> dict:
         os.remove(script_path)
 
 
-if __name__ == "__main__":
-    print(load_gpu_available_mac_torch("p312"))
+def load_gpu_available_mac_tensorflow_benchmarks(env_name: str) -> dict:
+    """Get detailed information about TensorFlow and MPS capabilities on Mac in the specified conda environment."""
+    conda_executable = find_conda_executable()
+    if not conda_executable:
+        return {"error": "Conda executable not found"}
+
+    # Create a temporary Python script
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", delete=False) as f:
+        f.write(
+            "import tensorflow as tf\n"
+            "import platform\n"
+            "import sys\n"
+            "import json\n"
+            "import time\n"
+            "import numpy as np\n"
+            "\n"
+            "info = {\n"
+            "    'tf_version': tf.__version__,\n"
+            "    'python_version': sys.version.split()[0],\n"
+            "    'platform': platform.platform(),\n"
+            "    'processor': platform.processor(),\n"
+            "    'architecture': platform.machine(),\n"
+            "    'gpu_devices': tf.config.list_physical_devices('GPU'),\n"
+            "    'benchmarks': []\n"
+            "}\n"
+            "\n"
+            "try:\n"
+            "    # Check if MPS is available\n"
+            "    info['mps_available'] = len(tf.config.list_physical_devices('GPU')) > 0\n"
+            "    \n"
+            "    if info['mps_available']:\n"
+            "        # Test with matrix multiplication benchmark\n"
+            "        matrix_sizes = [5000]  # Test with different sizes\n"
+            "        \n"
+            "        for size in matrix_sizes:\n"
+            "            benchmark = {'size': size}\n"
+            "            \n"
+            "            # CPU benchmark\n"
+            "            with tf.device('/CPU:0'):\n"
+            "                a_cpu = tf.random.normal([size, size])\n"
+            "                b_cpu = tf.random.normal([size, size])\n"
+            "                start = time.time()\n"
+            "                c_cpu = tf.matmul(a_cpu, b_cpu)\n"
+            "                _ = c_cpu.numpy()  # Force execution\n"
+            "                cpu_time = time.time() - start\n"
+            "                benchmark['cpu_time'] = cpu_time\n"
+            "            \n"
+            "            # GPU/MPS benchmark\n"
+            "            with tf.device('/GPU:0'):\n"
+            "                a_gpu = tf.random.normal([size, size])\n"
+            "                b_gpu = tf.random.normal([size, size])\n"
+            "                # Warmup run\n"
+            "                _ = tf.matmul(a_gpu, b_gpu).numpy()\n"
+            "                \n"
+            "                start = time.time()\n"
+            "                c_gpu = tf.matmul(a_gpu, b_gpu)\n"
+            "                _ = c_gpu.numpy()  # Force execution\n"
+            "                gpu_time = time.time() - start\n"
+            "                benchmark['gpu_time'] = gpu_time\n"
+            "            \n"
+            "            # Calculate speedup\n"
+            "            benchmark['speedup'] = cpu_time / gpu_time if gpu_time > 0 else 0\n"
+            "            info['benchmarks'].append(benchmark)\n"
+            "            \n"
+            "        info['mps_functional'] = True\n"
+            "except Exception as e:\n"
+            "    info['error'] = str(e)\n"
+            "    info['mps_functional'] = False\n"
+            "\n"
+            "print(json.dumps(info))"
+        )
+        script_path = f.name
+
+    try:
+        # Create a clean environment without venv variables
+        clean_env = os.environ.copy()
+
+        # Remove virtual environment variables that might interfere
+        for var in list(clean_env.keys()):
+            if var.startswith("VIRTUAL_ENV") or var.startswith("PYTHONHOME"):
+                clean_env.pop(var, None)
+
+        # Update PATH to remove .venv entries
+        if "PATH" in clean_env:
+            path_parts = clean_env["PATH"].split(os.pathsep)
+            clean_path = os.pathsep.join([p for p in path_parts if ".venv" not in p])
+            clean_env["PATH"] = clean_path
+
+        # Execute with clean environment
+        command = f"{conda_executable} run -n {env_name} python {script_path}"
+        logging.debug(f"Executing: {command}")
+
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            env=clean_env,
+        )
+
+        if result.returncode == 0:
+            try:
+                gpu_info = json.loads(result.stdout.strip())
+                logging.info(f"TensorFlow MPS check: {gpu_info}")
+                return gpu_info
+            except json.JSONDecodeError:
+                error_msg = f"Failed to parse TensorFlow output: {result.stdout}"
+                logging.error(error_msg)
+                return {"error": error_msg, "raw_output": result.stdout}
+        else:
+            error_msg = f"Failed to check TensorFlow MPS availability: {result.stderr}"
+            logging.error(error_msg)
+            return {"error": error_msg, "returncode": result.returncode}
+    finally:
+        # Clean up the temporary file
+        os.remove(script_path)
