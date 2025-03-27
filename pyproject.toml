@@ -48,7 +48,7 @@ dev = [
 ]
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ["py310"]
 
 [tool.isort]
@@ -58,7 +58,7 @@ multi_line_output = 3
 [tool.ruff]
 select = ["E", "F", "B"]
 ignore = []
-line-length = 88
+line-length = 120
 
 [project.scripts]
 mcp_server_my_mac = "mcp_server_my_mac.__main__:main"
