@@ -4,6 +4,7 @@ from .readers.load_conda_info import (
     load_conda_env_list,
     load_conda_env_package_list,
     load_conda_info,
+    load_gpu_available_mac_tensorflow_benchmarks,
     load_gpu_available_mac_torch,
 )
 from .readers.load_system_profiler import load_system_profiler
@@ -39,13 +40,7 @@ async def mcp_call_conda_info(env_name=None) -> str:
     # check None and if it is a string
     if env_name and isinstance(env_name, str):
         conda_env_package_list = load_conda_env_package_list(env_name)
-        return (
-            conda_info
-            + "\n\n"
-            + conda_env_list
-            + "\n\n"
-            + f"Packages in {env_name}: \n\n{conda_env_package_list}"
-        )
+        return f"{conda_info}\n\n{conda_env_list}\n\nPackages in {env_name}:\n\n{conda_env_package_list}"
 
     return conda_info + "\n\n" + conda_env_list
 
@@ -82,14 +77,36 @@ async def mcp_call_mac_system_profiler(datatype: str) -> str:
     return load_system_profiler(datatype)
 
 
-@mcp.tool(name="mcp_call_gpu_available_torch")
-async def mcp_call_gpu_available_torch(env_name: str) -> bool:
+@mcp.tool(name="mcp_call_gpu_available")
+async def mcp_call_gpu_available(env_name: str, framework: str = "torch") -> dict:
     """
     Check if GPU is available in torch for a specific conda environment.
-    Return True if GPU (Metal for M1, M2, M3, etc.) is available
-    and installed in PyTorch, False otherwise.
+    Input: torch or tensorflow
+    if framework is not provided, it will default to torch.
+
+    Returns a detailed dictionary with the following information:
+    - "torch_version": PyTorch version string
+    - "python_version": Python version string
+    - "platform": Platform information string
+    - "processor": Processor type
+    - "architecture": CPU architecture
+    - "mps_available": True if MPS (Metal Performance Shaders) is available
+    - "mps_built": True if PyTorch was built with MPS support
+    - "mps_functional": True if MPS is functional, False otherwise
+    - "benchmarks": A list of benchmark results for different matrix sizes, each containing:
+      - "size": Matrix size used for benchmark
+      - "cpu_time": Time taken on CPU (seconds)
+      - "mps_time": Time taken on MPS (seconds)
+      - "speedup": Ratio of CPU time to MPS time (higher means MPS is faster)
+
+    This helps determine if GPU acceleration via Apple's Metal is properly configured
+    and functioning, with performance benchmarks for comparison.
     """
-    return load_gpu_available_mac_torch(env_name)
+    if framework == "torch":
+        return load_gpu_available_mac_torch(env_name)
+    elif framework == "tensorflow":
+        return load_gpu_available_mac_tensorflow_benchmarks(env_name)
+    return {"error": "Framework not supported"}
 
 
 def start_server():
