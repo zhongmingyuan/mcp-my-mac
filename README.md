@@ -1,5 +1,9 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/zhongmingyuan-mcp-my-mac-badge.png)](https://mseep.ai/app/zhongmingyuan-mcp-my-mac)
 
+<a href="https://glama.ai/mcp/servers/@zhongmingyuan/mcp-my-mac">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@zhongmingyuan/mcp-my-mac/badge" alt="mcp-my-mac MCP server" />
+</a>
+
 # MCP My Mac
 
 A lightweight server that exposes Mac system information via a simple API, allowing AI assistants like Claude to access real-time system information about your Mac. This tool is primarily designed for Mac users who want to experiment with AI and Deep Learning on their machines.
